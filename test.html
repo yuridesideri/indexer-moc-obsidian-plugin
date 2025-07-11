@@ -1,0 +1,221 @@
+<script>
+  addEventListener("load", () => {
+  	console.log("Page is fully loaded, according to load event");
+  })
+  
+function WidgetNavBar(parentElement){
+  const widgetNavBarElementHTML = document.createElement("div");
+  widgetNavBarElementHTML.classList.add("navbar-third-party");
+  widgetNavBarElementHTML.innerHTML = `
+  <!-- Mancha 1 - Introdução -->
+    <div class="mancha-box mancha1" 
+         data-closed="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-38dab1b3-08ad-4d7b-9f32-532a03a89c52.png" 
+         data-open="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-b86e8549-73d2-40e7-9a27-df57bcab9015.png"
+         data-hover="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-76501d2e-35d4-4dfc-830a-b8cf57f581cc.png"
+         style="background-image: url('https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-38dab1b3-08ad-4d7b-9f32-532a03a89c52.png');">
+       <div class="mancha-bg-top"></div>
+       <div class="mancha-content mancha-content-intro">
+        <div class="mancha-sub mancha-sub-intro" id="btn-intro">Introdução</div>
+        <div class="mancha-sub mancha-sub-intro" id="btn-diario">Diário do Tim</div>
+      </div>
+    </div>
+    <!-- Mancha 2 - Capitulo 1 -->
+    <div class="mancha-box mancha2" 
+         data-closed="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-dc96a2fb-f35b-49b0-889f-bc5b5fdb4511.png" 
+         data-open="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-c0e8734b-6ad7-4e86-8f4c-4857ae8f3138.png"
+         data-hover="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-8957e0a7-6275-45e1-9cb6-cd9cafe4b78d.png"
+         style="background-image: url('https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-dc96a2fb-f35b-49b0-889f-bc5b5fdb4511.png');">
+      <div class="mancha-bg-top"></div>
+      <div class="mancha-content mancha-content-cap1">
+        <div class="mancha-sub mancha-sub-cap1" id="btn-atributos">Atributos</div>
+        <div class="mancha-sub mancha-sub-cap1 btn-cap1-menor" id="btn-viajar">Viajar</div>
+        <div class="mancha-sub mancha-sub-cap1 btn-cap1-menor" id="btn-voz">Voz</div>
+        <div class="mancha-sub mancha-sub-cap1 btn-cap1-menor" id="btn-tabuleiroexploracao">Tabuleiro de Exploração</div>
+        <div class="mancha-sub mancha-sub-cap1 btn-cap1-menor" id="btn-biomas">Biomas</div> 
+        <div class="mancha-sub mancha-sub-cap1 btn-cap1-menor" id="btn-testes">Testes</div>
+        <div class="mancha-sub mancha-sub-cap1 btn-cap1-menor" id="btn-combate">Combate</div>
+        <div class="mancha-sub mancha-sub-cap1 btn-cap1-menor" id="btn-guiaaventura">Guia de Aventura</div>
+      </div>
+    </div>
+    <!-- Mancha 3 - Capitulo 2 -->
+    <div class="mancha-box mancha3" 
+         data-closed="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-106e8086-258b-429a-9ec7-4d7d13c28401.png" 
+         data-open="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-f7f35107-7000-4015-bc85-3b0939289886.png"
+         data-hover="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-2527627d-392e-43c7-ba51-1b4f1ca0de23.png"
+         style="background-image: url('https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-106e8086-258b-429a-9ec7-4d7d13c28401.png');">
+      <div class="mancha-bg-top"></div>
+      <div class="mancha-content mancha-content-cap2">
+        <div class="mancha-sub mancha-sub-cap2" id="btn-destino">Destino</div>
+        <div class="mancha-sub mancha-sub-cap2" id="btn-saudade">Saudade</div>
+        <div class="mancha-sub mancha-sub-cap2" id="btn-raizes">Raízes</div>
+        <div class="mancha-sub mancha-sub-cap2" id="btn-especialidades">Especialidades</div>
+        <div class="mancha-sub mancha-sub-cap2" id="btn-comunidade">Comunidade</div>
+        <div class="mancha-sub mancha-sub-cap2" id="btn-caminhos">Caminhos</div>
+      </div>
+    </div>
+    <!-- Mancha 4 - Capitulo 3 -->
+    <div class="mancha-box mancha4" 
+         data-closed="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-5a0df8ea-8713-4c33-bff3-54ffa6ba59bf.png" 
+         data-open="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-c6853e0b-5dde-4b61-bd2c-6ed3ef6ce273.png"
+         data-hover="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-32c74c02-fdb1-464c-a4b8-0dcc50907aaf.png"
+         style="background-image: url('https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-5a0df8ea-8713-4c33-bff3-54ffa6ba59bf.png');">
+      <div class="mancha-bg-top"></div>
+      <div class="mancha-content mancha-content-cap3">
+        <div class="mancha-sub mancha-sub-cap3" id="btn-infeccao">Infecção</div>
+        <div class="mancha-sub mancha-sub-cap3 btn-stella-menor" id="btn-stella">Usando Stella</div>
+      </div>
+    </div>
+    <!-- Mancha 5 - Capitulo 4 -->
+    <div class="mancha-box mancha5"
+         data-closed="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-6f8eaa6f-9c15-4066-8957-e383b47f3c97.png" 
+         data-hover="https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-a788e400-cbd5-4f3b-a4dd-295f31b8d868.png"
+         data-link="https://readymag.website/u320846715/5648534/inventario/"
+         style="background-image: url('https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-6f8eaa6f-9c15-4066-8957-e383b47f3c97.png');">
+      <div class="mancha-bg-top"></div>
+    </div>
+  </div>
+  `;
+  // Inserindo o HTML no elemento pai
+    parentElement.appendChild(widgetNavBarElementHTML);
+    
+    // Pré-carregamento das imagens
+    const imagensParaPrecarregar = [
+      // Mancha 1 - Introdução (Retraido verde, Retraido Roxo, Expandido Roxo)
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-38dab1b3-08ad-4d7b-9f32-532a03a89c52.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-76501d2e-35d4-4dfc-830a-b8cf57f581cc.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-b86e8549-73d2-40e7-9a27-df57bcab9015.png',
+      // Mancha 2 - Capitulo 1 (Retraido verde, Retraido Roxo, Expandido Roxo)
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-dc96a2fb-f35b-49b0-889f-bc5b5fdb4511.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-8957e0a7-6275-45e1-9cb6-cd9cafe4b78d.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-c0e8734b-6ad7-4e86-8f4c-4857ae8f3138.png',
+      // Mancha 3 - Capitulo 2 (Retraido verde, Retraido Roxo, Expandido Roxo)
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-106e8086-258b-429a-9ec7-4d7d13c28401.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-2527627d-392e-43c7-ba51-1b4f1ca0de23.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-f7f35107-7000-4015-bc85-3b0939289886.png',
+      // Mancha 4 - Capitulo 3 (Retraido verde, Retraido Roxo, Expandido Roxo)
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-5a0df8ea-8713-4c33-bff3-54ffa6ba59bf.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-c6853e0b-5dde-4b61-bd2c-6ed3ef6ce273.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-32c74c02-fdb1-464c-a4b8-0dcc50907aaf.png',
+      // Mancha 5 - Capitulo 4 (Retraido verde, Retraido Roxo)
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-6f8eaa6f-9c15-4066-8957-e383b47f3c97.png',
+        'https://i-p.rmcdn.net/64484c76b31ed1001ad4563b/5648534/image-a788e400-cbd5-4f3b-a4dd-295f31b8d868.png',
+    ];
+    imagensParaPrecarregar.forEach(function(src) {
+      const img = new Image();
+      img.src = src;
+    });
+
+    // Lógica de hover e expandir
+    document.querySelectorAll('.mancha-box').forEach(box => {
+      const bgTop = box.querySelector('.mancha-bg-top');
+      bgTop.style.backgroundImage = `url('${box.dataset.hover}')`;
+
+      // Hover
+      box.addEventListener('mouseenter', function () {
+        if (!box.classList.contains('expanded')) {
+          box.classList.add('show-hover');
+        }
+      });
+      box.addEventListener('mouseleave', function () {
+        if (!box.classList.contains('expanded')) {
+          box.classList.remove('show-hover');
+        }
+      });
+
+      // Clique personalizado para mancha 5 (Inventário)
+      if (box.classList.contains('mancha5')) {
+        box.addEventListener('click', function () {
+          // Apenas vai para o link
+          window.location.href = box.dataset.link;
+        });
+      } else {
+        // Clique para expandir/retrair para as outras
+        box.addEventListener('click', function () {
+          const expanded = box.classList.toggle('expanded');
+          if (expanded) {
+            box.style.backgroundImage = `url('${box.dataset.open}')`;
+            box.classList.add('show-hover');
+          } else {
+            box.style.backgroundImage = `url('${box.dataset.closed}')`;
+            box.classList.remove('show-hover');
+          }
+        });
+      }
+    });
+
+    // Evita que clique nos botões faça expandir/retrair a mancha
+    document.querySelectorAll('.mancha-sub').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+      });
+    });
+
+    // Botões de navegação (os que existem)
+    function setBtnLink(id, link) {
+      //const btn = document.getElementById(id);
+      const test = document.querySelectorAll(`#${id}`)
+      test.forEach((btn) => {
+
+        if (btn) btn.addEventListener('click', () => { window.location.href = link; })
+      })
+      
+    }
+
+    // Introdução
+    setBtnLink('btn-intro', 'https://readymag.website/u320846715/5648534/');
+    setBtnLink('btn-diario', 'https://readymag.website/u320846715/5648534/diariodotim/');
+    // Capitulo 1
+    setBtnLink('btn-atributos', 'https://readymag.website/u320846715/5648534/atributos/ ');
+    setBtnLink('btn-viajar', 'https://readymag.website/u320846715/5648534/viajar/');
+    setBtnLink('btn-voz', 'https://readymag.website/u320846715/5648534/voz/');
+    setBtnLink('btn-tabuleiroexploracao', 'https://readymag.website/u320846715/5648534/tabuleirodeexploracao//');
+    setBtnLink('btn-biomas', 'https://readymag.website/u320846715/5648534/biomas/');
+    setBtnLink('btn-testes', 'https://readymag.website/u320846715/5648534/teste/');
+    setBtnLink('btn-combate', 'https://readymag.website/u320846715/5648534/combate/');
+    setBtnLink('btn-guiaaventura', 'https://readymag.website/u320846715/5648534/guiadeaventura/');
+    // Capitulo 2
+    setBtnLink('btn-destino', 'https://readymag.website/u320846715/5648534/destino/');
+    setBtnLink('btn-saudade', 'https://readymag.website/u320846715/5648534/saudade/');
+    setBtnLink('btn-raizes', 'https://readymag.website/u320846715/5648534/raizes/');
+    setBtnLink('btn-especialidades', 'https://readymag.website/u320846715/5648534/especialidades/');
+    setBtnLink('btn-comunidade', 'https://readymag.website/u320846715/5648534/comunidade/');
+    setBtnLink('btn-caminhos', 'https://readymag.website/u320846715/5648534/caminhos/');
+    // Capitulo 3
+    setBtnLink('btn-infeccao', 'https://readymag.website/u320846715/5648534/infeccao/');
+    setBtnLink('btn-stella', 'https://readymag.website/u320846715/5648534/usandostella/');
+    // Capitulo 4
+    setBtnLink('btn-inventario', 'https://readymag.website/u320846715/5648534/inventario/');
+  
+}
+  
+function MainCodeAdder(main){
+	const contentPages = main.querySelectorAll(".content-scroll-wrapper");
+	console.log(contentPages);
+  	contentPages.forEach((page) => {
+    const parentAdimensionalElement = document.createElement("div")
+    parentAdimensionalElement.classList.add("adimensional-widget-third-party-parent-element");
+    page.prepend(parentAdimensionalElement);
+    WidgetNavBar(parentAdimensionalElement);
+    })
+};
+
+
+const mainObserver = new MutationObserver(() => {
+  console.log('Observei algo 👀');
+  const main = document.querySelector("main");
+  if (main) {
+    console.log("Peguei a Main");
+    MainCodeAdder(main)
+    mainObserver.disconnect();
+               };
+});
+  
+mainObserver.observe(document.body, { childList: true, subtree: true });
+  
+
+
+  
+  
+  
+
+</script>

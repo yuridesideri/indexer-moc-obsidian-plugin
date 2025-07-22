@@ -82,6 +82,8 @@ export default class MyPlugin extends Plugin {
 
 	}
 
+	
+
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}

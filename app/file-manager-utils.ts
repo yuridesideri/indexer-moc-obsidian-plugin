@@ -7,19 +7,32 @@ export class FileManagerUtils {
         this.app = app;
     }
 
-    async createMocFile(filePath: string, content: string): Promise<TFile | null> {
+    async createMocFile(filePath: string, content: string, propertyName: string, propertyValue: string | string[], templatePath?: string): Promise<TFile | undefined> {
+        //If there's a template, use it!
+        if (templatePath) {
+            try {
+                const templateFile = this.app.vault.getFileByPath(templatePath);
+                if (templateFile) {
+                    content = await this.app.vault.read(templateFile);
+                } else {
+                    new Notice(`Template file not found: ${templatePath}`);
+                }
+            } catch (error) {
+                new Notice(`Error reading template file: ${error.message}`);
+            }
+        }
+        //Create the MOC file with the specified content and frontmatter
         try {
             const file = await this.app.vault.create(filePath, content);
             new Notice(`MOC file created: ${filePath}`);
             await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
-                frontmatter['nova-propriedade'] = 'valor';
+                frontmatter[propertyName] = propertyValue;
             });
             return file;
         } catch (error) {
             new Notice(`Error creating MOC file: ${error.message}`);
-            return null;
+            return;
         }
-
 
     }
 

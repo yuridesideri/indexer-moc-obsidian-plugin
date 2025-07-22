@@ -12,25 +12,23 @@ import {
 } from "obsidian";
 
 import { FileManagerUtils } from "./file-manager-utils";
-// Remember to rename these classes and interfaces!
+import SettingsTab from "./settings-tab";
 
-interface MyPluginSettings {
-    mySetting: string;
+class DEFAULT_SETTINGS {
+    mocPropertyKey = "moc-property";
+    mocPropertyValue = "defaultValue";
+    templatePath?: string = undefined;
 }
 
-const DEFAULT_SETTINGS: MyPluginSettings = {
-    mySetting: "default",
-};
-
 export default class MyPlugin extends Plugin {
-    settings: MyPluginSettings;
+    settings: InstanceType<typeof DEFAULT_SETTINGS>;
     FileManagerUtils: FileManagerUtils;
 
     async onload() {
-        const {app} = this;
+        const { app } = this;
 
         await this.loadSettings();
-        
+
         // Inicializar o FileManagerUtils
         this.FileManagerUtils = new FileManagerUtils(app);
 
@@ -44,11 +42,14 @@ export default class MyPlugin extends Plugin {
 
             const filteredFilesTags = await this.FileManagerUtils.filterFilesByProperty("tags", "me_mostra");
             const filteredFilesCT = await this.FileManagerUtils.filterFilesByProperty("contentType", "moc");
-            
+
             console.log("Filtered files by tags:", filteredFilesTags);
             console.log("Filtered files by contentType:", filteredFilesCT);
 
-            await this.FileManagerUtils.createMocFile("new-moc.md", "# MOC Content");
+            const mocProperty = this.settings.mocPropertyKey;
+            const mocValue = this.settings.mocPropertyValue;
+            const { templatePath } = this.settings;
+            await this.FileManagerUtils.createMocFile("new-moc.md", "# MOC Content", mocProperty, mocValue, templatePath);
         });
     }
 
@@ -57,9 +58,10 @@ export default class MyPlugin extends Plugin {
     async loadSettings() {
         this.settings = Object.assign(
             {},
-            DEFAULT_SETTINGS,
+            new DEFAULT_SETTINGS(),
             await this.loadData()
         );
+        this.addSettingTab(new SettingsTab(this.app, this));
     }
 
     async saveSettings() {
@@ -115,30 +117,3 @@ class SampleModal extends Modal {
     }
 }
 
-class SampleSettingTab extends PluginSettingTab {
-    plugin: MyPlugin;
-
-    constructor(app: App, plugin: MyPlugin) {
-        super(app, plugin);
-        this.plugin = plugin;
-    }
-
-    display(): void {
-        const { containerEl } = this;
-
-        containerEl.empty();
-
-        new Setting(containerEl)
-            .setName("Setting #1")
-            .setDesc("It's a secret")
-            .addText((text) =>
-                text
-                    .setPlaceholder("Enter your secret")
-                    .setValue(this.plugin.settings.mySetting)
-                    .onChange(async (value) => {
-                        this.plugin.settings.mySetting = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
-    }
-}

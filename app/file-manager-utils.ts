@@ -1,4 +1,6 @@
 import { App, TFile, TFolder, Notice } from "obsidian";
+import DEFAULT_SETTINGS from "./settings";
+import MocAdministrator from "./moc-management";
 
 export class FileManagerUtils {
     private app: App;
@@ -7,7 +9,7 @@ export class FileManagerUtils {
         this.app = app;
     }
 
-    async createMocFile(filePath: string, content: string, propertyName: string, propertyValue: string | string[], templatePath?: string): Promise<TFile | undefined> {
+    async createIndexFile(filePath: string, content: string, propertyName: string, propertyValue: string | string[], templatePath?: string): Promise<TFile | undefined> {
         //If there's a template, use it!
         if (templatePath) {
             try {
@@ -28,11 +30,17 @@ export class FileManagerUtils {
             await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
                 frontmatter[propertyName] = propertyValue;
             });
+            const mocAdministrator = new MocAdministrator(file, this.app);
+            await mocAdministrator.insertMocToFile();
+            await mocAdministrator.connect();
+
             return file;
         } catch (error) {
             new Notice(`Error creating MOC file: ${error.message}`);
             return;
         }
+
+
 
     }
 

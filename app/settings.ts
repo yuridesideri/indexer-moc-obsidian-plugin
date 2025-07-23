@@ -1,10 +1,18 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
-import MyPlugin from "./main";
+import MocPlugin from "./main";
 
-export default class SettingsTab extends PluginSettingTab {
-    plugin: MyPlugin;
 
-    constructor(app: App, plugin: MyPlugin) {
+export default class DEFAULT_SETTINGS {
+    mocPropertyKey = "moc-property";
+    mocPropertyValue = "defaultValue";
+    templatePath?: string = undefined;
+    mocHeader: string = "MOC Links:";
+}
+
+export class SettingsTab extends PluginSettingTab {
+    plugin: MocPlugin;
+
+    constructor(app: App, plugin: MocPlugin) {
         super(app, plugin);
         this.plugin = plugin;
     }

@@ -12,15 +12,12 @@ import {
 } from "obsidian";
 
 import { FileManagerUtils } from "./file-manager-utils";
-import SettingsTab from "./settings-tab";
+import { SettingsTab } from "./settings";
+import DEFAULT_SETTINGS from "./settings";
 
-class DEFAULT_SETTINGS {
-    mocPropertyKey = "moc-property";
-    mocPropertyValue = "defaultValue";
-    templatePath?: string = undefined;
-}
 
-export default class MyPlugin extends Plugin {
+
+export default class MocPlugin extends Plugin {
     settings: InstanceType<typeof DEFAULT_SETTINGS>;
     FileManagerUtils: FileManagerUtils;
 
@@ -43,13 +40,11 @@ export default class MyPlugin extends Plugin {
             const filteredFilesTags = await this.FileManagerUtils.filterFilesByProperty("tags", "me_mostra");
             const filteredFilesCT = await this.FileManagerUtils.filterFilesByProperty("contentType", "moc");
 
-            console.log("Filtered files by tags:", filteredFilesTags);
-            console.log("Filtered files by contentType:", filteredFilesCT);
 
             const mocProperty = this.settings.mocPropertyKey;
             const mocValue = this.settings.mocPropertyValue;
             const { templatePath } = this.settings;
-            await this.FileManagerUtils.createMocFile("new-moc.md", "# MOC Content", mocProperty, mocValue, templatePath);
+            await this.FileManagerUtils.createIndexFile("new-index.md", "# MOC Content", mocProperty, mocValue, templatePath);
         });
     }
 

@@ -187,6 +187,7 @@ export default class MocAdministrator {
 
     getChildrenLinks() {
         const { self_file } = this;
+        const parentFolder = this.getDirectParent(self_file)
         let childrenLinks: TFile[] = [];
         const recursiveChildrenFinder = (startingFolder: TFolder) => {
             startingFolder.children.forEach((child) => {
@@ -202,7 +203,12 @@ export default class MocAdministrator {
             })
 
         }
-        recursiveChildrenFinder(this.getDirectParent(self_file));
+        parentFolder.children.forEach((child) => {
+            if (child instanceof TFolder) {
+                recursiveChildrenFinder(child);
+            }
+        });
+
         return childrenLinks;
     }
 }

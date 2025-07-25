@@ -29,7 +29,7 @@ export default class MocPlugin extends Plugin {
         // Inicializar o FileManagerUtils
         this.FileManagerUtils = new FileManagerUtils(app);
 
-        this.addRibbonIcon("notepad-text", "Read File", async (evt) => {
+        this.addRibbonIcon("notepad-text", "Create File", async (evt) => {
             // Usando o FileManagerUtils
             const activeFile = app.workspace.getActiveFile();
             if (activeFile) {

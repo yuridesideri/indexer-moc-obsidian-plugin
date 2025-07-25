@@ -1,5 +1,6 @@
-import { TFile, App, Notice } from "obsidian";
+import { TFile, App, Notice, TFolder, TAbstractFile } from "obsidian";
 import DEFAULT_SETTINGS from "./settings";
+import { get } from "http";
 
 new DEFAULT_SETTINGS();
 
@@ -120,10 +121,22 @@ export default class MocAdministrator {
         }
     }
 
+    private getDirectParent(AbsFile: TAbstractFile): TFolder {
+        let parent = AbsFile.parent;
+        if (!parent) {
+            return this.app.vault.getRoot();
+        }
+        else {
+            return parent;
+        }
+
+    }
+
     //Updates Files inside the ObjectAdministrator
     getFilesLinks(): typeof this.MocLinks.files {
         const { self_file } = this;
         let filesArr: typeof this.MocLinks.files = undefined;
+        // Caso o pai seja o root, pega todos os arquivos do diretório raíz
         if (!self_file.parent) {
             // @ts-ignore
             filesArr = this.app.vault.getRoot().children.filter((absFile) => absFile instanceof TFile && absFile.path !== self_file.path);
@@ -169,5 +182,27 @@ export default class MocAdministrator {
         }
         new Notice("Can't find parent MOC file for: " + self_file.name);
         return null;
+    }
+
+
+    getChildrenLinks() {
+        const { self_file } = this;
+        let childrenLinks: TFile[] = [];
+        const recursiveChildrenFinder = (startingFolder: TFolder) => {
+            startingFolder.children.forEach((child) => {
+                if (child instanceof TFile) {
+                    const frontmatterCopy = this.app.metadataCache.getFileCache(child)?.frontmatter;
+                    if (frontmatterCopy && frontmatterCopy[this.settings.mocPropertyKey] === this.settings.mocPropertyValue) {
+                        childrenLinks.push(child);
+                    }
+                }
+                else if (child instanceof TFolder) {
+                    recursiveChildrenFinder(child);
+                }
+            })
+
+        }
+        recursiveChildrenFinder(this.getDirectParent(self_file));
+        return childrenLinks;
     }
 }

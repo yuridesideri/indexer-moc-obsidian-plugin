@@ -36,7 +36,11 @@ export default class MocPlugin extends Plugin {
             const mocValue = this.settings.mocPropertyValue;
             const { templatePath } = this.settings;
             const root = app.vault.getRoot();
-            const fileName = this.FileManagerUtils.createIndexFileNameAndPath(root);
+            const activeFile = app.workspace.getActiveFile();
+            const activeFolder = activeFile?.parent;
+            const fileNameAndPath = this.FileManagerUtils.createIndexFileNameAndPath(activeFolder || root);
+
+
             const content = `# This is a test file for MOC
 This file is created to test the MOC functionality in Obsidian.
 
@@ -44,7 +48,7 @@ This file is created to test the MOC functionality in Obsidian.
 
 
 `
-            const createdFile = await this.FileManagerUtils.createIndexFile(fileName, content, mocProperty, mocValue, templatePath);
+            await this.FileManagerUtils.createIndexFile(fileNameAndPath, content, mocProperty, mocValue, templatePath);
         });
 
 
@@ -67,7 +71,7 @@ This file is created to test the MOC functionality in Obsidian.
                     const folder = absFile as TFolder;
                     const folderName = this.FileManagerUtils.parseEmojiFolderName(folder.name);
                     if (folderName !== folder.name) {
-                        await this.app.vault.rename(folder, folderName);
+                        await this.app.fileManager.renameFile(folder, `${folder.parent?.path}/${folderName}`);
                         new Notice(`Folder renamed to: ${folderName}`);
                     }
                 }

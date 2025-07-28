@@ -50,7 +50,7 @@ export class FileManagerUtils {
         if (folder.isRoot()) {
             folderName = folder.vault.getName();
         }
-        return `${this.plugin.settings.indexFilePrefix}${this.plugin.settings.autoRenameIndexFile ? folderName : ""}${this.plugin.settings.indexFileSuffix}.md`;
+        return `${folder.path}/${this.plugin.settings.indexFilePrefix}${this.plugin.settings.autoRenameIndexFile ? folderName : ""}${this.plugin.settings.indexFileSuffix}.md`;
     }
 
     async readFileMetadata(file: TFile) {

@@ -209,6 +209,14 @@ export default class MocAdministrator {
             }
         });
 
+        if (childrenLinks.length === 0) {
+            new Notice("No children MOC files found in the current folder.");
+            return null;
+        }
+        else if (childrenLinks.length > 1) {
+            new Notice(`Multiple MOC files found in the current folder: ${parentFolder.path}`);
+        }
+
         return childrenLinks;
     }
 }

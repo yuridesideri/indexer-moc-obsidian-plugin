@@ -1,8 +1,6 @@
-/*
-
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
-
-If your plugin does not need CSS, delete this file.
-
-*/
+.moc-plugin-start {
+	font-size: var(--h1-size); /* e.g. 2.25rem or 36px */
+	font-weight: var(--h1-weight);
+	line-height: var(--h1-line-height); /* line height for H1 */
+	color: var(--h1-color);
+}

@@ -1,12 +1,14 @@
-import { App, TFile, TFolder, Notice } from "obsidian";
-import DEFAULT_SETTINGS from "./settings";
+import { App, TFile, TFolder, Notice, TAbstractFile } from 'obsidian';
 import MocAdministrator from "./moc-management";
+import MocPlugin from "./main";
 
 export class FileManagerUtils {
     private app: App;
+    private plugin: MocPlugin;
 
-    constructor(app: App) {
-        this.app = app;
+    constructor(plugininjector: MocPlugin) {
+        this.app = plugininjector.app;
+        this.plugin = plugininjector;
     }
 
     async createIndexFile(filePath: string, content: string, propertyName: string, propertyValue: string | string[], templatePath?: string): Promise<TFile | undefined> {
@@ -30,9 +32,10 @@ export class FileManagerUtils {
             await this.app.fileManager.processFrontMatter(file, (frontmatter) => {
                 frontmatter[propertyName] = propertyValue;
             });
-            const mocAdministrator = new MocAdministrator(file, this.app);
-            await mocAdministrator.insertMocToFile();
+            const mocAdministrator = new MocAdministrator(this.plugin, file);
             await mocAdministrator.connect();
+            await mocAdministrator.mocInjectorToFile();
+
 
             return file;
         } catch (error) {
@@ -48,10 +51,6 @@ export class FileManagerUtils {
         return this.app.metadataCache.getFileCache(file);
     }
 
-    getAllVaultFolders(): TFolder[] {
-        return this.app.vault.getAllFolders();
-    }
-
     async filterFilesByProperty(propertyName: string, propertyValue: any): Promise<TFile[]> {
         const files = this.app.vault.getMarkdownFiles();
         const filteredFiles: TFile[] = [];
@@ -61,6 +60,33 @@ export class FileManagerUtils {
             if (metadata && metadata.frontmatter) {
                 if (metadata.frontmatter[propertyName] === propertyValue ||
                     metadata.frontmatter[propertyName]?.includes(propertyValue)) {
+                    filteredFiles.push(file);
+                }
+            }
+        }
+
+        return filteredFiles;
+    }
+
+    getDirectParent(AbsFile: TAbstractFile): TFolder {
+        let parent = AbsFile.parent;
+        if (!parent) {
+            return this.app.vault.getRoot();
+        }
+        else {
+            return parent;
+        }
+
+    }
+
+    async filterAllFilesByProperty(propertyName: string, propertyValue: any): Promise<TFile[]> {
+        const files = this.app.vault.getMarkdownFiles();
+        const filteredFiles: TFile[] = [];
+
+        for (const file of files) {
+            const metadata = this.app.metadataCache.getFileCache(file);
+            if (metadata && metadata.frontmatter) {
+                if (metadata.frontmatter[propertyName] === propertyValue || metadata.frontmatter[propertyName]?.includes(propertyValue)) {
                     filteredFiles.push(file);
                 }
             }

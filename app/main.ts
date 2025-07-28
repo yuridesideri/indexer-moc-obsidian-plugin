@@ -14,6 +14,7 @@ import {
 import { FileManagerUtils } from "./file-manager-utils";
 import { SettingsTab } from "./settings";
 import DEFAULT_SETTINGS from "./settings";
+import MocAdministrator from "./moc-management";
 
 
 
@@ -27,26 +28,44 @@ export default class MocPlugin extends Plugin {
         await this.loadSettings();
 
         // Inicializar o FileManagerUtils
-        this.FileManagerUtils = new FileManagerUtils(app);
+        this.FileManagerUtils = new FileManagerUtils(this);
 
         this.addRibbonIcon("notepad-text", "Create File", async (evt) => {
             // Usando o FileManagerUtils
-            const activeFile = app.workspace.getActiveFile();
+            const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
                 const metadata = await this.FileManagerUtils.readFileMetadata(activeFile);
                 console.log("Metadata:", metadata);
             }
 
-            const filteredFilesTags = await this.FileManagerUtils.filterFilesByProperty("tags", "me_mostra");
-            const filteredFilesCT = await this.FileManagerUtils.filterFilesByProperty("contentType", "moc");
-
-
             const mocProperty = this.settings.mocPropertyKey;
             const mocValue = this.settings.mocPropertyValue;
             const { templatePath } = this.settings;
-            await this.FileManagerUtils.createIndexFile("new-index.md", "# MOC Content", mocProperty, mocValue, templatePath);
+            const content = `# This is a test file for MOC
+This file is created to test the MOC functionality in Obsidian.
+
+
+
+
+`
+            await this.FileManagerUtils.createIndexFile("new-index.md", content, mocProperty, mocValue, templatePath);
+        });
+
+
+        this.addRibbonIcon("loader-pinwheel", "Read Active File", async (evt) => {
+            const activeFile = this.app.workspace.getActiveFile();
+            if (activeFile) {
+                const mocAdmin = new MocAdministrator(this, activeFile);
+                await mocAdmin.connect();
+                await mocAdmin.mocInjectorToFile();
+            }
+            else {
+                new Notice("No active file found.");
+            }
         });
     }
+
+
 
     onunload() { }
 
@@ -62,53 +81,4 @@ export default class MocPlugin extends Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
     }
-
-    readVaultFolders(): TFolder[] {
-        const folders = this.app.vault.getAllFolders();
-        return folders;
-    }
-
-    async readMetadataFromFile() {
-        const arquivo = this.app.workspace.getActiveFile();
-        if (!arquivo) {
-            new Notice("No file is currently open.");
-            return;
-        }
-        const metadata = this.app.metadataCache.getFileCache(arquivo);
-
-        // const conteudo = await this.app.vault.read(arquivo);
-        return metadata;
-    }
-
-    async filterFilesByProperty(propertyName: string, propertyValue: any): Promise<TFile[]> {
-        const files = this.app.vault.getMarkdownFiles();
-        const filteredFiles: TFile[] = [];
-
-        for (const file of files) {
-            const metadata = this.app.metadataCache.getFileCache(file);
-            if (metadata && metadata.frontmatter) {
-                if (metadata.frontmatter[propertyName] === propertyValue || metadata.frontmatter[propertyName]?.includes(propertyValue)) {
-                    filteredFiles.push(file);
-                }
-            }
-        }
-
-        return filteredFiles;
-    }
 }
-class SampleModal extends Modal {
-    constructor(app: App) {
-        super(app);
-    }
-
-    onOpen() {
-        const { contentEl } = this;
-        contentEl.setText("Woah!");
-    }
-
-    onClose() {
-        const { contentEl } = this;
-        contentEl.empty();
-    }
-}
-

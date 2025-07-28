@@ -42,9 +42,15 @@ export class FileManagerUtils {
             new Notice(`Error creating MOC file: ${error.message}`);
             return;
         }
+    }
 
-
-
+    createIndexFileNameAndPath(folder: TFolder): string {
+        folder = folder || this.app.vault.getRoot();
+        let folderName = folder?.name.replace(/\s+/g, "-");
+        if (folder.isRoot()) {
+            folderName = folder.vault.getName();
+        }
+        return `${this.plugin.settings.indexFilePrefix}${this.plugin.settings.autoRenameIndexFile ? folderName : ""}${this.plugin.settings.indexFileSuffix}.md`;
     }
 
     async readFileMetadata(file: TFile) {
@@ -94,5 +100,14 @@ export class FileManagerUtils {
 
         return filteredFiles;
     }
-}
 
+
+    parseEmojiFolderName(folderName: string): string {
+        const emoji = this.plugin.settings.autoFolderEmoji;
+        if (folderName.startsWith(emoji)) {
+            return folderName; // No change needed if it already starts with the emoji
+        }
+        return emoji ? `${emoji}${folderName}` : folderName;
+    }
+
+}

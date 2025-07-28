@@ -7,6 +7,7 @@ import {
     Plugin,
     PluginSettingTab,
     Setting,
+    TAbstractFile,
     TFile,
     TFolder,
 } from "obsidian";
@@ -31,16 +32,11 @@ export default class MocPlugin extends Plugin {
         this.FileManagerUtils = new FileManagerUtils(this);
 
         this.addRibbonIcon("notepad-text", "Create File", async (evt) => {
-            // Usando o FileManagerUtils
-            const activeFile = this.app.workspace.getActiveFile();
-            if (activeFile) {
-                const metadata = await this.FileManagerUtils.readFileMetadata(activeFile);
-                console.log("Metadata:", metadata);
-            }
-
             const mocProperty = this.settings.mocPropertyKey;
             const mocValue = this.settings.mocPropertyValue;
             const { templatePath } = this.settings;
+            const root = app.vault.getRoot();
+            const fileName = this.FileManagerUtils.createIndexFileNameAndPath(root);
             const content = `# This is a test file for MOC
 This file is created to test the MOC functionality in Obsidian.
 
@@ -48,7 +44,7 @@ This file is created to test the MOC functionality in Obsidian.
 
 
 `
-            await this.FileManagerUtils.createIndexFile("new-index.md", content, mocProperty, mocValue, templatePath);
+            const createdFile = await this.FileManagerUtils.createIndexFile(fileName, content, mocProperty, mocValue, templatePath);
         });
 
 
@@ -63,6 +59,21 @@ This file is created to test the MOC functionality in Obsidian.
                 new Notice("No active file found.");
             }
         });
+
+        if (this.settings.autoFolderEmoji !== "") {
+            console.log("Auto Folder Emoji is enabled:", this.settings.autoFolderEmoji);
+            this.registerEvent(this.app.vault.on("rename", async (absFile: TAbstractFile) => {
+                if (absFile instanceof TFolder) {
+                    const folder = absFile as TFolder;
+                    const folderName = this.FileManagerUtils.parseEmojiFolderName(folder.name);
+                    if (folderName !== folder.name) {
+                        await this.app.vault.rename(folder, folderName);
+                        new Notice(`Folder renamed to: ${folderName}`);
+                    }
+                }
+            }));
+        }
+
     }
 
 

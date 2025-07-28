@@ -7,6 +7,10 @@ export default class DEFAULT_SETTINGS {
     mocPropertyValue = "defaultValue";
     templatePath?: string = undefined;
     mocHeader: string = "MOC Links:";
+    autoRenameIndexFile: boolean = false;
+    indexFilePrefix: string = "Index - ";
+    indexFileSuffix: string = "";
+    autoFolderEmoji: string = "";
 }
 
 export class SettingsTab extends PluginSettingTab {
@@ -64,5 +68,56 @@ export class SettingsTab extends PluginSettingTab {
             });
         containerEl.createDiv({ text: "Ex: path/to/your/template.md", cls: "setting-item-description" });
 
+        //Index File Auto-Rename from Folder Name
+        new Setting(containerEl)
+            .setName("Index File Auto-Rename from Folder Name Radical")
+            .setDesc("Automatically rename the index file to match the folder name when creating a new MOC file.")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.autoRenameIndexFile)
+                    .onChange(async (value) => {
+                        this.plugin.settings.autoRenameIndexFile = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+        //Index File Prefix
+        new Setting(containerEl)
+            .setName("Index File Prefix")
+            .setDesc("Set the prefix for the index file name.")
+            .addText((text) =>
+                text
+                    .setPlaceholder("Index File Prefix")
+                    .setValue(this.plugin.settings.indexFilePrefix)
+                    .onChange(async (value) => {
+                        this.plugin.settings.indexFilePrefix = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+        //Index File Suffix
+        new Setting(containerEl)
+            .setName("Index File Suffix")
+            .setDesc("Set the suffix for the index file name.")
+            .addText((text) =>
+                text
+                    .setPlaceholder("Index File Suffix")
+                    .setValue(this.plugin.settings.indexFileSuffix)
+                    .onChange(async (value) => {
+                        this.plugin.settings.indexFileSuffix = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+        //Auto-Emoji Folders
+        new Setting(containerEl)
+            .setName("Auto-Emoji Folders")
+            .setDesc("Automatically add specified emoji to folder names' prefixes when created.")
+            .addText((text) =>
+                text
+                    .setPlaceholder("Enter emoji")
+                    .setValue(this.plugin.settings.autoFolderEmoji)
+                    .onChange(async (value) => {
+                        this.plugin.settings.autoFolderEmoji = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
     }
 }

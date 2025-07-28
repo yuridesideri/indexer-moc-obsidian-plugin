@@ -219,7 +219,6 @@ ${childrenLinksString}
 #### Files:
 ${filesLinksString}
 <span class="moc-plugin-end"> </span>
-
 ---`;
 
         return mocString;
@@ -237,7 +236,9 @@ ${filesLinksString}
 
             const moc = this.mocStringGenerator();
             // Se precisar concatenar, use \n se não terminar com \n
-            const newContent = (endsWithNewline ? content : `${content}\n`) + moc;
+            //Adicionar o MOC com 10 breaks de linha
+            const lineBreaks = 10;
+            const newContent = (endsWithNewline ? content : `${content}\n`) + (`${'\n'.repeat(lineBreaks)}`) + moc;
 
             // Escreve de volta o conteúdo
             await this.app.vault.modify(this.self_file, newContent);

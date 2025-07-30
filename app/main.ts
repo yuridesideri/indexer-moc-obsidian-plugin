@@ -60,7 +60,7 @@ This file is created to test the MOC functionality in Obsidian.
             const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
                 const mocAdmin = new MocAdministrator(this, activeFile);
-                await mocAdmin.connect();
+                mocAdmin.connect();
                 await mocAdmin.mocInjectorToFile();
             }
             else {

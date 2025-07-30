@@ -46,11 +46,12 @@ export class FileManagerUtils {
 
     createIndexFileNameAndPath(folder: TFolder): string {
         folder = folder || this.app.vault.getRoot();
-        let folderName = folder?.name.replace(/\p{Emoji_Presentation}/gu, "");
+        let folderNameCopy = folder?.name
+        folderNameCopy = folderNameCopy.replace(/\p{Emoji_Presentation}/gu, "");
         if (folder.isRoot()) {
-            folderName = folder.vault.getName();
+            folderNameCopy = folder.vault.getName();
         }
-        return `${folder.path}/${this.plugin.settings.indexFilePrefix}${this.plugin.settings.autoRenameIndexFile ? folderName.trim() : ""}${this.plugin.settings.indexFileSuffix}.md`;
+        return `${folder.path}/${this.plugin.settings.indexFilePrefix}${this.plugin.settings.autoRenameIndexFile ? folderNameCopy.trim() : ""}${this.plugin.settings.indexFileSuffix}.md`;
     }
 
     async fileAutoRenaming(file: TFile): Promise<void> {
@@ -58,8 +59,15 @@ export class FileManagerUtils {
             const parentFolder = this.getDirectParent(file);
             const newFileName = this.createIndexFileNameAndPath(parentFolder);
             if (newFileName !== file.path) {
-                await this.app.fileManager.renameFile(file, newFileName);
-                new Notice(`File renamed to: ${newFileName}`);
+                try {
+                    console.log(file.path)
+                    this.app.vault.rename(file, newFileName);
+                    this.app.fileManager.renameFile(file, file.path);
+                    new Notice(`File renamed to: ${newFileName}`);
+                } catch (error) {
+                    console.error("Error renaming file:", error);
+                    console.log("entrou no catch")
+                }
             }
         }
     }
@@ -91,7 +99,10 @@ export class FileManagerUtils {
             const folderName = this.insertEmojiInFolderName(folder.name);
             if (folderName !== folder.name) {
                 await this.app.fileManager.renameFile(folder, `${folder.parent?.path}/${folderName}`);
-                new Notice(`Folder renamed to: ${folderName}`);
+                // absFile.children.filter(child => this.isIndexFile(child)).forEach(async child => {
+                //     await this.fileAutoRenaming(child as TFile);
+                // });
+                // new Notice(`Folder renamed to: ${folderName}`);
             }
         }
     }

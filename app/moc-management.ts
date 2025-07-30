@@ -85,9 +85,15 @@ export default class MocAdministrator {
         else {
             mocRegex = /^---[\s\r\n]*<span class="moc-plugin-start">MOC Links:<\/span>[\s\S]*?<span class="moc-plugin-end">\s*<\/span>[\s\r\n]*---[\s\r\n]*/gm;
         }
-        await this.app.vault.process(this.self_file, (content) => {
-            return content.replace(mocRegex, "");
-        })
+        try {
+            this.app.vault.process(this.self_file, (content) => {
+                return content.replace(mocRegex, "");
+            }).catch((err) => {
+                console.error("Error deleting MOC string:", err);
+            });
+        } catch (err) {
+            console.log(err)
+        }
     }
 
     generateMocConnections(): typeof this.MocLinks {
@@ -226,16 +232,16 @@ ${filesLinksString}
         try {
             const moc = this.mocStringGenerator();
             // Escreve de volta o conteúdo
-            const returnValue = await this.app.vault.process(this.self_file, (content) => {
+            const returnValue = this.app.vault.process(this.self_file, (content) => {
                 const endsWithNewline = content.endsWith('\n');
                 const newContent = (endsWithNewline ? content : `${content}\n`) + (`${'\n'.repeat(lineBreaks)}`) + moc;
                 return newContent;
+            }).catch((err) => {
+                console.error("Error inserting MOC links:", err);
             });
-            console.log("finalizou a criação, resultado:", returnValue)
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             new Notice(`Error inserting MOC links: ${error.message}, Check if the Moc Administrator is Connected to the file.`);
-
         }
     }
 

@@ -29,19 +29,27 @@ export default class EventHandlers {
             }
         }));
 
-        this.plugin.registerEvent(this.app.vault.on("rename", async (absFile) => {
-            if (this.plugin.settings.autoFolderEmoji !== "") {
-                await this.fileManagerUtils.folderAutoRenaming(absFile)
+        this.plugin.registerEvent(this.app.vault.on("rename", async (absFile, oldPath) => {
+            //For moving files
+            if (absFile.name === oldPath.split("/").pop()) {
+                await this.fileManagerUtils.fileAutoRenaming(absFile as TFile);
+                await this.updateIndexMocTree();
             }
-            await this.updateIndexMocTree();
-            await this.fileManagerUtils.fileAutoRenaming(absFile as TFile);
-            
+            // For renaming files
+            else {
+                // console.log("Fui renomeado de:", oldPath, "para:", absFile.path)
+                //Se for TFolder
+                if (this.plugin.settings.autoFolderEmoji !== "" && absFile instanceof TFolder) {
+                    await this.fileManagerUtils.folderAutoRenaming(absFile);
+
+                }
+            }
         }));
 
         this.plugin.registerEvent(this.app.vault.on("modify", (absFile) => mocLinksAutoUpdateDebouncer(absFile)));
 
         this.plugin.registerEvent(this.app.vault.on("delete", async (absFile) => {
-            await this.updateIndexMocTree()
+            // await this.updateIndexMocTree()
         }));
 
     }
@@ -56,13 +64,10 @@ export default class EventHandlers {
     }
 
     async updateIndexMocTree(): Promise<void> {
-        const folders = [this.app.vault.getRoot(), ...this.app.vault.getAllFolders()];
-
-        folders.forEach(async (folder: TFolder) => {
-            const children = folder.children;
-            children.forEach(async (child: TAbstractFile) => {
-                await this.mocLinksAutoUpdate(child);
-            })
+        const files = this.app.vault.getMarkdownFiles().filter(file => this.fileManagerUtils.isIndexFile(file));
+        files.forEach(async (file: TFile) => {
+            const fileName = file.name;
+            await this.mocLinksAutoUpdate(file);
         })
     }
 }

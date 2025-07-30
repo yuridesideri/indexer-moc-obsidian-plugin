@@ -21,6 +21,10 @@ export default class EventHandlers {
             mocLinksAutoUpdateDebouncer.cancel();
         }, 30000, true); //30seg
 
+        const updateIndexMocTreeDebouncer = debounce(async () => {
+            await this.updateIndexMocTree();
+        }, 100, true); // 100ms
+
         //EventsHandlers
         this.plugin.registerEvent(this.app.vault.on("create", (absFile) => {
             if (absFile instanceof TFolder) {
@@ -30,19 +34,22 @@ export default class EventHandlers {
         }));
 
         this.plugin.registerEvent(this.app.vault.on("rename", async (absFile, oldPath) => {
-            //For moving files
-            if (absFile.name === oldPath.split("/").pop()) {
-                await this.fileManagerUtils.fileAutoRenaming(absFile as TFile);
-                await this.updateIndexMocTree();
-            }
-            // For renaming files
-            else {
-                // console.log("Fui renomeado de:", oldPath, "para:", absFile.path)
-                //Se for TFolder
-                if (this.plugin.settings.autoFolderEmoji !== "" && absFile instanceof TFolder) {
-                    await this.fileManagerUtils.folderAutoRenaming(absFile);
-
+            updateIndexMocTreeDebouncer()
+            try {
+                //For moving files
+                if (absFile.name === oldPath.split("/").pop()) {
+                    await this.fileManagerUtils.fileAutoRenaming(absFile as TFile);
+                    // Adiciona um pequeno delay antes de atualizar para evitar conflitos
                 }
+                // For renaming files
+                else {
+                    //Se for TFolder
+                    if (this.plugin.settings.autoFolderEmoji !== "" && absFile instanceof TFolder) {
+                        await this.fileManagerUtils.folderAutoRenaming(absFile);
+                    }
+                }
+            } catch (error) {
+                console.error(`Error handling rename from ${oldPath} to ${absFile.path}:`, error);
             }
         }));
 
@@ -57,17 +64,34 @@ export default class EventHandlers {
 
     async mocLinksAutoUpdate(absFile: TAbstractFile): Promise<void> {
         if (this.fileManagerUtils.isIndexFile(absFile)) {
-            const mocAdministrator = new MocAdministrator(this.plugin, absFile as TFile);
-            mocAdministrator.connect();
-            await mocAdministrator.updateMocLinks();
+            // Verifica se o arquivo ainda existe antes de processar
+            const fileExists = await this.app.vault.adapter.exists(absFile.path);
+            if (!fileExists) {
+                console.warn(`File ${absFile.path} no longer exists, skipping MOC update`);
+                return;
+            }
+
+            try {
+                const mocAdministrator = new MocAdministrator(this.plugin, absFile as TFile);
+                mocAdministrator.connect();
+                await mocAdministrator.updateMocLinks();
+            } catch (error) {
+                console.error(`Error updating MOC for ${absFile.path}:`, error);
+            }
         }
     }
 
     async updateIndexMocTree(): Promise<void> {
         const files = this.app.vault.getMarkdownFiles().filter(file => this.fileManagerUtils.isIndexFile(file));
-        files.forEach(async (file: TFile) => {
-            const fileName = file.name;
-            await this.mocLinksAutoUpdate(file);
-        })
+
+        for (const file of files) {
+            // Verifica se o arquivo ainda existe antes de processar
+            const fileExists = await this.app.vault.adapter.exists(file.path);
+            if (fileExists) {
+                await this.mocLinksAutoUpdate(file);
+            } else {
+                console.warn(`File ${file.path} no longer exists, skipping in updateIndexMocTree`);
+            }
+        }
     }
 }

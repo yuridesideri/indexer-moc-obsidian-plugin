@@ -12,7 +12,7 @@ export default class MocAdministrator {
     settings
     plugin: MocPlugin;
     fileManager: FileManagerUtils;
-    private app: App;
+    app: App;
 
     constructor(pluginInjector: MocPlugin, self_file: TFile) {
         this.app = pluginInjector.app;
@@ -22,12 +22,11 @@ export default class MocAdministrator {
         this.fileManager = new FileManagerUtils(pluginInjector);
     }
 
-    async connect(): Promise<void> {
-        const mocString = await this.getMocString();
-        //If MOC STRING is empty, create a new one (Injection)
+    connect() {
+        // const mocString = await this.getMocString();
+        //If MOC STRING is empty, create a new one (Injection) - Será que eu faço isso junto?
         this.MocLinks = this.generateMocConnections();
-        console.log("MocLinks", this.MocLinks);
-        await this.parseMocString(mocString);
+        // await this.parseMocString(mocString);
     }
 
 
@@ -42,7 +41,7 @@ export default class MocAdministrator {
         return "";
     }
 
-    private async parseMocString(mocString: string) {
+    private parseMocString(mocString: string) {
         const lines = mocString.split("\n");
         const mocLinks: typeof this.MocLinks = {
             parent: undefined,
@@ -78,6 +77,19 @@ export default class MocAdministrator {
         return mocLinks;
     }
 
+    async deleteMocString(resetLines: boolean = true): Promise<void> {
+        let mocRegex: RegExp;
+        if (resetLines) {
+            mocRegex = /((?:^[ \t]*\r?\n)*)^---[\s\r\n]*<span class="moc-plugin-start">MOC Links:<\/span>[\s\S]*?<span class="moc-plugin-end">\s*<\/span>[\s\r\n]*---[\s\r\n]*((?:^[ \t]*\r?\n)*)$/gm;
+        }
+        else {
+            mocRegex = /^---[\s\r\n]*<span class="moc-plugin-start">MOC Links:<\/span>[\s\S]*?<span class="moc-plugin-end">\s*<\/span>[\s\r\n]*---[\s\r\n]*/gm;
+        }
+        await this.app.vault.process(this.self_file, (content) => {
+            return content.replace(mocRegex, "");
+        })
+    }
+
     generateMocConnections(): typeof this.MocLinks {
         const mocLinks: typeof this.MocLinks = {
             parent: this.getParentLink(),
@@ -87,26 +99,17 @@ export default class MocAdministrator {
         return mocLinks;
     }
 
-    mocUpdater = {
-        ParentLinks: () => {
-            // Implementar lógica para atualizar links de pais
-        },
-        ChildrenLinks: () => {
-            // Implementar lógica para atualizar links de filhos
-        },
-        FilesLinks: () => {
-            // Implementar lógica para atualizar links de arquivos
-        },
-        AllLinks: () => {
-            this.mocUpdater.ParentLinks();
-            this.mocUpdater.ChildrenLinks();
-            this.mocUpdater.FilesLinks();
-        }
+    async updateMocLinks() {
+        await this.deleteMocString(false);
+        await this.mocInjectorToFile(0);
+
+        //TODO: Update siblings
     }
 
+
+
     //Updates Files inside the ObjectAdministrator
-    getFilesLinks(): typeof this.MocLinks.files {
-        const { self_file } = this;
+    getFilesLinks(self_file = this.self_file): typeof this.MocLinks.files {
         let filesArr: typeof this.MocLinks.files = undefined;
         // Caso o pai seja o root, pega todos os arquivos do diretório raíz
         if (!self_file.parent) {
@@ -124,8 +127,7 @@ export default class MocAdministrator {
         return filesArr;
     }
 
-    getParentLink() {
-        const { self_file } = this;
+    getParentLink(self_file = this.self_file) {
         let parentFolder = self_file.parent;
         if (!parentFolder) {
             return null;
@@ -146,19 +148,18 @@ export default class MocAdministrator {
                 return indexFilesChildren[0];
             }
             else if (indexFilesChildren.length > 1) {
-                new Notice(`Multiple Index Files with MOC found inside folder: ${parentFolder.path}
-                    This might lead to errors in the plugin.`);
+                // new Notice(`Multiple Index Files with MOC found inside folder: ${parentFolder.path}
+                //     This might lead to errors in the plugin.`);
                 return indexFilesChildren[0];
             }
             parentFolder = parentFolder.parent;
         }
-        new Notice("Can't find parent MOC file for: " + self_file.name);
+        // new Notice("Can't find parent MOC file for: " + self_file.name);
         return null;
     }
 
 
-    getChildrenLinks() {
-        const { self_file } = this;
+    getChildrenLinks(self_file = this.self_file) {
         const parentFolder = this.fileManager.getDirectParent(self_file);
         let childrenLinks: TFile[] = [];
         const recursiveChildrenFinder = (startingFolder: TFolder) => {
@@ -181,7 +182,7 @@ export default class MocAdministrator {
                 });
             }
             if (directChildrenFiles.length > 1) {
-                new Notice(`Multiple MOC files found in the current folder: ${startingFolder.path}`);
+                // new Notice(`Multiple MOC files found in single folder: ${startingFolder.path}`);
             }
 
             childrenLinks = [...childrenLinks, ...directChildrenFiles];
@@ -193,11 +194,8 @@ export default class MocAdministrator {
         });
 
         if (childrenLinks.length === 0) {
-            new Notice("No children MOC files found in the current folder.");
+            // new Notice("No children MOC files found in the current folder.");
             return null;
-        }
-        else if (childrenLinks.length > 1) {
-            new Notice(`Multiple MOC files found in the current folder: ${parentFolder.path}`);
         }
 
         return childrenLinks;
@@ -224,33 +222,19 @@ ${filesLinksString}
         return mocString;
     }
 
-    async mocInjectorToFile() {
+    async mocInjectorToFile(lineBreaks: number = 10): Promise<void> {
         try {
-            // const updatedContent = this.addMocLinksToContent(content, mocLinks);
-            let content = await this.app.vault.read(this.self_file);
-
-            // Verifica se a última linha já termina com uma quebra de linha
-            const endsWithNewline = content.endsWith('\n');
-            const header = this.settings.mocHeader;
-            // Cria o MOC a partir dos links
-
             const moc = this.mocStringGenerator();
-            // Se precisar concatenar, use \n se não terminar com \n
-            //Adicionar o MOC com 10 breaks de linha
-            const lineBreaks = 10;
-            const newContent = (endsWithNewline ? content : `${content}\n`) + (`${'\n'.repeat(lineBreaks)}`) + moc;
-
             // Escreve de volta o conteúdo
-            await this.app.vault.modify(this.self_file, newContent);
-
-            this.app.metadataCache.trigger('changed', this.self_file, '', null);
-            this.app.metadataCache.trigger('resolve', this.self_file);
-
-            new Notice('Texto adicionado com sucesso!');
-
+            const returnValue = await this.app.vault.process(this.self_file, (content) => {
+                const endsWithNewline = content.endsWith('\n');
+                const newContent = (endsWithNewline ? content : `${content}\n`) + (`${'\n'.repeat(lineBreaks)}`) + moc;
+                return newContent;
+            });
+            console.log("finalizou a criação, resultado:", returnValue)
         } catch (error) {
-            new Notice(`Error inserting MOC links: ${error.message}
-Check if the Moc Administrator is Connected to the file.`);
+            console.log(error);
+            new Notice(`Error inserting MOC links: ${error.message}, Check if the Moc Administrator is Connected to the file.`);
 
         }
     }

@@ -16,20 +16,24 @@ import { FileManagerUtils } from "./file-manager-utils";
 import { SettingsTab } from "./settings";
 import DEFAULT_SETTINGS from "./settings";
 import MocAdministrator from "./moc-management";
+import EventHandlers from './event-handlers';
 
 
 
 export default class MocPlugin extends Plugin {
     settings: InstanceType<typeof DEFAULT_SETTINGS>;
     FileManagerUtils: FileManagerUtils;
+    EventHandlers: EventHandlers;
 
     async onload() {
         const { app } = this;
 
         await this.loadSettings();
 
-        // Inicializar o FileManagerUtils
         this.FileManagerUtils = new FileManagerUtils(this);
+
+        this.EventHandlers = new EventHandlers(this);
+        this.EventHandlers.loadEventHandlers();
 
         this.addRibbonIcon("notepad-text", "Create File", async (evt) => {
             const mocProperty = this.settings.mocPropertyKey;
@@ -52,7 +56,7 @@ This file is created to test the MOC functionality in Obsidian.
         });
 
 
-        this.addRibbonIcon("loader-pinwheel", "Read Active File", async (evt) => {
+        this.addRibbonIcon("loader-pinwheel", "Inject to Active File", async (evt) => {
             const activeFile = this.app.workspace.getActiveFile();
             if (activeFile) {
                 const mocAdmin = new MocAdministrator(this, activeFile);
@@ -64,19 +68,21 @@ This file is created to test the MOC functionality in Obsidian.
             }
         });
 
-        if (this.settings.autoFolderEmoji !== "") {
-            console.log("Auto Folder Emoji is enabled:", this.settings.autoFolderEmoji);
-            this.registerEvent(this.app.vault.on("rename", async (absFile: TAbstractFile) => {
-                if (absFile instanceof TFolder) {
-                    const folder = absFile as TFolder;
-                    const folderName = this.FileManagerUtils.parseEmojiFolderName(folder.name);
-                    if (folderName !== folder.name) {
-                        await this.app.fileManager.renameFile(folder, `${folder.parent?.path}/${folderName}`);
-                        new Notice(`Folder renamed to: ${folderName}`);
-                    }
+
+        //Deleta MocString
+        this.addCommand({
+            id: "delete-moc-string",
+            name: "Delete MOC String",
+            callback: async () => {
+                const activeFile = this.app.workspace.getActiveFile();
+                if (activeFile) {
+                    const mocAdmin = new MocAdministrator(this, activeFile);
+                    await mocAdmin.deleteMocString();
+                } else {
+                    new Notice("No active file found.");
                 }
-            }));
-        }
+            },
+        });
 
     }
 

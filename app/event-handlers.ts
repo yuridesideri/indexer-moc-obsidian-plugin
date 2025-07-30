@@ -18,7 +18,8 @@ export default class EventHandlers {
         //Debounceable-Needed Events
         const mocLinksAutoUpdateDebouncer = debounce(async (absFile: TAbstractFile) => {
             await this.mocLinksAutoUpdate(absFile);
-        }, 3000, false); //3seg
+            mocLinksAutoUpdateDebouncer.cancel();
+        }, 30000, true); //30seg
 
         //EventsHandlers
         this.plugin.registerEvent(this.app.vault.on("create", (absFile) => {
@@ -47,15 +48,8 @@ export default class EventHandlers {
 
 
     async mocLinksAutoUpdate(absFile: TAbstractFile): Promise<void> {
-        if (absFile instanceof TFile && this.fileManagerUtils.isIndexFile(absFile)) {
-            // Verifica se o arquivo ainda existe antes de processar
-            const fileExists = await this.app.vault.adapter.exists(absFile.path);
-            if (!fileExists) {
-                console.warn(`File ${absFile.path} no longer exists, skipping MOC update`);
-                return;
-            }
-            
-            const mocAdministrator = new MocAdministrator(this.plugin, absFile);
+        if (this.fileManagerUtils.isIndexFile(absFile)) {
+            const mocAdministrator = new MocAdministrator(this.plugin, absFile as TFile);
             mocAdministrator.connect();
             await mocAdministrator.updateMocLinks();
         }
@@ -64,13 +58,11 @@ export default class EventHandlers {
     async updateIndexMocTree(): Promise<void> {
         const folders = [this.app.vault.getRoot(), ...this.app.vault.getAllFolders()];
 
-        for (const folder of folders) {
+        folders.forEach(async (folder: TFolder) => {
             const children = folder.children;
-            for (const child of children) {
-                if (child instanceof TFile && this.fileManagerUtils.isIndexFile(child)) {
-                    await this.mocLinksAutoUpdate(child);
-                }
-            }
-        }
+            children.forEach(async (child: TAbstractFile) => {
+                await this.mocLinksAutoUpdate(child);
+            })
+        })
     }
 }

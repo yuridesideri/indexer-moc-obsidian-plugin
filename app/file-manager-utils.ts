@@ -65,7 +65,6 @@ export class FileManagerUtils {
             return;
         }
 
-        this.plugin.BlockEventList.push(file);
         const parentFolder = this.getDirectParent(file);
         const newFileName = this.createIndexFileNameAndPath(parentFolder);
 

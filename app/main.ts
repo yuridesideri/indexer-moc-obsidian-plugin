@@ -1,15 +1,7 @@
 import {
-    App,
-    Editor,
-    MarkdownView,
-    Modal,
     Notice,
     Plugin,
-    PluginSettingTab,
-    Setting,
-    TAbstractFile,
     TFile,
-    TFolder,
 } from "obsidian";
 
 import { FileManagerUtils } from "./file-manager-utils";
@@ -24,11 +16,8 @@ export default class MocPlugin extends Plugin {
     settings: InstanceType<typeof DEFAULT_SETTINGS>;
     FileManagerUtils: FileManagerUtils;
     EventHandlers: EventHandlers;
-    BlockEventList: TFile[] = [];
 
     async onload() {
-        const { app } = this;
-
         await this.loadSettings();
 
         this.FileManagerUtils = new FileManagerUtils(this);
@@ -36,54 +25,34 @@ export default class MocPlugin extends Plugin {
         this.EventHandlers = new EventHandlers(this);
         this.EventHandlers.loadEventHandlers();
 
-        this.addRibbonIcon("notepad-text", "Create File", async (evt) => {
-            const mocProperty = this.settings.mocPropertyKey;
-            const mocValue = this.settings.mocPropertyValue;
-            const { templatePath } = this.settings;
-            const root = app.vault.getRoot();
-            const activeFile = app.workspace.getActiveFile();
-            const activeFolder = activeFile?.parent;
-            const fileNameAndPath = this.FileManagerUtils.createIndexFileNameAndPath(activeFolder || root);
-
-
-            const content = `# This is a test file for MOC
-This file is created to test the MOC functionality in Obsidian.
-
-
-
-
-`
-            await this.FileManagerUtils.createIndexFile(fileNameAndPath, content, mocProperty, mocValue, templatePath);
-        });
-
-
-        this.addRibbonIcon("loader-pinwheel", "Inject to Active File", async (evt) => {
-            const activeFile = this.app.workspace.getActiveFile();
-            if (activeFile) {
-                const mocAdmin = new MocAdministrator(this, activeFile);
-                mocAdmin.connect();
-                await mocAdmin.mocInjectorToFile();
-            }
-            else {
-                new Notice("No active file found.");
-            }
-        });
-
-
-        //Deleta MocString
+        //Atualiza MocString
         this.addCommand({
-            id: "delete-moc-string",
-            name: "Async Example",
+            id: "update-moc-string",
+            name: "Update Moc-String on Command",
             callback: async () => {
                 const activeFile = this.app.workspace.getActiveFile();
                 if (activeFile) {
-                    console.log("Start Reading File");
-                    const cache = await this.app.fileManager.renameFile(activeFile, "NewFileName.md");
-                    console.log("File Read", cache);
+                    const mocAdministrator = new MocAdministrator(this, activeFile);
+                    await mocAdministrator.updateMocLinks();
+                    new Notice(`MOC Links updated for ${activeFile.name}`);
                 }
-
             },
         });
+
+
+        //TODO: Make a separate file for commands and implement some useful ones.
+        // this.addCommand({
+        //     id: "unindex-file",
+        //     name: "Unindex File",
+        //     callback: async () => {
+        //         const activeFile = this.app.workspace.getActiveFile();
+        //         if (activeFile) {
+        //             const mocAdministrator = new MocAdministrator(this, activeFile);
+        //             await mocAdministrator.updateMocLinks();
+        //             new Notice(`MOC Links updated for ${activeFile.name}`);
+        //         }
+        //     },
+        // });
 
     }
 

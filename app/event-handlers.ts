@@ -55,6 +55,10 @@ export default class EventHandlers {
 
         //EventsHandlers
         this.plugin.registerEvent(this.app.vault.on("create", (absFile) => {
+            //handle exclusion cases
+            if (this.plugin.settings.pathExceptions.some(path => absFile.path.includes(path))) {
+                return;
+            }
             //
             if (absFile instanceof TFolder) {
                 const fileNameAndPath = this.fileManagerUtils.createIndexFileNameAndPath(absFile);
@@ -63,6 +67,10 @@ export default class EventHandlers {
         }));
 
         this.plugin.registerEvent(this.app.vault.on("rename", async (absFile, oldPath) => {
+            //handle exclusion cases
+            if (this.plugin.settings.pathExceptions.some(path => absFile.path.includes(path))) {
+                return;
+            }
 
             // Check if this rename was initiated by our plugin
             if (this.pluginInitiatedRenames.has(oldPath)) {
@@ -174,11 +182,18 @@ export default class EventHandlers {
         }));
 
         this.plugin.registerEvent(this.app.vault.on("modify", (absFile) => {
+            if (this.plugin.settings.pathExceptions.some(path => absFile.path.includes(path))) {
+                return;
+            }
             mocLinksAutoUpdateDebouncer(absFile)
             updateIndexMocTreeDebouncer(absFile);
         }));
 
         this.plugin.registerEvent(this.app.vault.on("delete", async (absFile) => {
+            //handle exclusion cases
+            if (this.plugin.settings.pathExceptions.some(path => absFile.path.includes(path))) {
+                return;
+            }
             updateIndexMocTreeDebouncer(absFile);
 
         }));

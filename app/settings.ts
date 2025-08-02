@@ -7,6 +7,7 @@ export default class DEFAULT_SETTINGS {
     mocPropertyKey = "moc-property";
     mocPropertyValue = "defaultValue";
     templatePath?: string = undefined;
+    pathExceptions: string[] = [];
     mocHeader: string = "MOC Links:";
     autoRenameIndexFile: boolean = false;
     indexFilePrefix: string = "Index - ";
@@ -68,6 +69,18 @@ export class SettingsTab extends PluginSettingTab {
                 }
             });
         containerEl.createDiv({ text: "Ex: path/to/your/template.md", cls: ["setting-item-description", "space-separator"] });
+
+        new Setting(containerEl)
+            .setName("Path Exceptions")
+            .setDesc("Set paths to be ignored by the plugin (separated by line breaks)").addTextArea((textArea) => {
+                textArea
+                    .setPlaceholder("Path exceptions")
+                    .setValue(this.plugin.settings.pathExceptions.join("\n"))
+                    .onChange(async (value) => {
+                        this.plugin.settings.pathExceptions = value.split("\n").map((item) => item.trim());
+                        await this.plugin.saveSettings();
+                    });
+            });
 
         //Index File Prefix
         new Setting(containerEl)

@@ -15,7 +15,7 @@ export const DEBOUNCE_TIMEOUTS = {
 // Padrões de arquivos
 export const FILE_PATTERNS = {
     MOC_SPAN_START: '<span class="moc-plugin-start">',
-    MOC_SPAN_END: '<span class="moc-plugin-end">',
+    MOC_SPAN_END: '<span class="moc-plugin-end"> </span>',
     MOC_REGEX: /<span class="moc-plugin-start">([\s\S]*?)<\/span>([\s\S]*?)<span class="moc-plugin-end">/,
 } as const;
 

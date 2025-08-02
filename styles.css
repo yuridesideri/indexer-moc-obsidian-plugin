@@ -4,3 +4,7 @@
 	line-height: var(--h1-line-height); /* line height for H1 */
 	color: var(--h1-color);
 }
+
+.space-separator {
+	padding-bottom: 0.75rem;
+}

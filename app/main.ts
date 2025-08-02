@@ -24,6 +24,7 @@ export default class MocPlugin extends Plugin {
     settings: InstanceType<typeof DEFAULT_SETTINGS>;
     FileManagerUtils: FileManagerUtils;
     EventHandlers: EventHandlers;
+    BlockEventList: TFile[] = [];
 
     async onload() {
         const { app } = this;
@@ -72,15 +73,15 @@ This file is created to test the MOC functionality in Obsidian.
         //Deleta MocString
         this.addCommand({
             id: "delete-moc-string",
-            name: "Delete MOC String",
+            name: "Async Example",
             callback: async () => {
                 const activeFile = this.app.workspace.getActiveFile();
                 if (activeFile) {
-                    const mocAdmin = new MocAdministrator(this, activeFile);
-                    await mocAdmin.deleteMocString();
-                } else {
-                    new Notice("No active file found.");
+                    console.log("Start Reading File");
+                    const cache = await this.app.fileManager.renameFile(activeFile, "NewFileName.md");
+                    console.log("File Read", cache);
                 }
+
             },
         });
 

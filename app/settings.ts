@@ -1,5 +1,6 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting, TFile, TFolder } from "obsidian";
 import MocPlugin from "./main";
+import MocAdministrator from "./moc-management";
 
 
 export default class DEFAULT_SETTINGS {
@@ -66,20 +67,8 @@ export class SettingsTab extends PluginSettingTab {
                     text.setValue(this.plugin.settings.templatePath);
                 }
             });
-        containerEl.createDiv({ text: "Ex: path/to/your/template.md", cls: "setting-item-description" });
+        containerEl.createDiv({ text: "Ex: path/to/your/template.md", cls: ["setting-item-description", "space-separator"] });
 
-        //Index File Auto-Rename from Folder Name
-        new Setting(containerEl)
-            .setName("Index File Auto-Rename from Folder Name Radical")
-            .setDesc("Automatically rename the index file to match the folder name when creating a new MOC file.")
-            .addToggle((toggle) =>
-                toggle
-                    .setValue(this.plugin.settings.autoRenameIndexFile)
-                    .onChange(async (value) => {
-                        this.plugin.settings.autoRenameIndexFile = value;
-                        await this.plugin.saveSettings();
-                    })
-            );
         //Index File Prefix
         new Setting(containerEl)
             .setName("Index File Prefix")
@@ -119,5 +108,40 @@ export class SettingsTab extends PluginSettingTab {
                         await this.plugin.saveSettings();
                     })
             );
+        //Index File Auto-Rename from Folder Name
+        new Setting(containerEl)
+            .setName("Index File Auto-Rename from Folder Name Radical")
+            .setDesc("Automatically rename the index file to match the folder name when creating a new MOC file.")
+            .addToggle((toggle) =>
+                toggle
+                    .setValue(this.plugin.settings.autoRenameIndexFile)
+                    .onChange(async (value) => {
+                        this.plugin.settings.autoRenameIndexFile = value;
+                        await this.plugin.saveSettings();
+                    })
+            );
+
+        //Update Moc Tree
+        new Setting(containerEl)
+            .setName("Update File Tree")
+            .setDesc("Automatically update the File Moc tree and defined settings on click.")
+            .addButton((button) =>
+                button
+                    .setButtonText("Update")
+                    .onClick(async () => {
+                        // await this.plugin.updateMocTree();
+                        const anyFile = this.app.vault.getFiles().find(file => file instanceof TFile);
+                        const mocAdmin = new MocAdministrator(this.plugin, anyFile as TFile);
+                        const allFolders = this.app.vault.getAllFolders().filter(file => file instanceof TFolder);
+
+                        for (const folder of allFolders) {
+                            await this.plugin.FileManagerUtils.folderAutoRenaming(folder as TFolder);
+                        }
+                        console.log(allFolders);
+
+                        mocAdmin.updateIndexMocTree();
+                    }))
     }
+
 }
+

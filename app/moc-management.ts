@@ -1,9 +1,10 @@
 import { TFile, App, Notice, TFolder } from "obsidian";
 import MocPlugin from "./main";
-import { FileManagerUtils } from "./file-manager-utils";
+import { FileManagerUtils } from './file-manager-utils';
+import { FILE_PATTERNS, DEFAULT_CONFIG } from './constants';
 
 export default class MocAdministrator {
-    self_file: TFile;
+    self_file: TFile ;
     MocLinks: {
         parent: TFile | null | undefined;
         children: TFile[] | null | undefined;
@@ -33,8 +34,7 @@ export default class MocAdministrator {
 
     private async getMocString() {
         const fileContent = await this.app.vault.read(this.self_file);
-        const mocRegex = /<span class="moc-plugin-start">([\s\S]*?)<\/span>([\s\S]*?)<span class="moc-plugin-end">/;
-        const match = fileContent.match(mocRegex);
+        const match = fileContent.match(FILE_PATTERNS.MOC_REGEX);
         if (match) {
             return match[2].trim();
         }
@@ -111,6 +111,42 @@ export default class MocAdministrator {
 
         //TODO: Update siblings
     }
+
+    async mocLinksAutoUpdate(): Promise<void> {
+        if (this.fileManager.isIndexFile(this.self_file)) {
+            // Verifica se o arquivo ainda existe antes de processar
+            const fileExists = await this.app.vault.adapter.exists(this.self_file.path);
+            if (!fileExists) {
+                console.warn(`File ${this.self_file.path} no longer exists, skipping MOC update`);
+                return;
+            }
+
+            try {
+                const mocAdministrator = new MocAdministrator(this.plugin, this.self_file as TFile);
+                mocAdministrator.connect();
+                await mocAdministrator.updateMocLinks();
+            } catch (error) {
+                console.error(`Error updating MOC for ${this.self_file.path}:`, error);
+            }
+        }
+    }
+
+    async updateIndexMocTree(): Promise<void> {
+        const files = this.app.vault.getMarkdownFiles().filter(file => this.fileManager.isIndexFile(file));
+
+        for (const file of files) {
+            // Verifica se o arquivo ainda existe antes de processar
+            const fileExists = await this.app.vault.adapter.exists(file.path);
+            if (fileExists) {
+                const mocAdministrator = new MocAdministrator(this.plugin, file);
+                mocAdministrator.connect();
+                await mocAdministrator.updateMocLinks();
+            } else {
+                console.warn(`File ${file.path} no longer exists, skipping in updateIndexMocTree`);
+            }
+        }
+    }
+
 
 
 
@@ -215,20 +251,20 @@ export default class MocAdministrator {
         const childrenLinksString = children && children.length > 0 ? children.map(child => `- ${this.app.fileManager.generateMarkdownLink(child, this.self_file.path)}`).join("\n") : "- *None*";
         const filesLinksString = files && files.length > 0 ? files.map(file => `- ${this.app.fileManager.generateMarkdownLink(file, this.self_file.path)}`).join("\n") : "- *None*";
         const mocString = `---
-<span class="moc-plugin-start">${header}</span>
+${FILE_PATTERNS.MOC_SPAN_START}${header}</span>
 #### Parent:
 - ${parentLinkString}
 #### Children:
 ${childrenLinksString}
 #### Files:
 ${filesLinksString}
-<span class="moc-plugin-end"> </span>
+${FILE_PATTERNS.MOC_SPAN_END}
 ---`;
 
         return mocString;
     }
 
-    async mocInjectorToFile(lineBreaks: number = 10): Promise<void> {
+    async mocInjectorToFile(lineBreaks: number = DEFAULT_CONFIG.LINE_BREAKS_DEFAULT): Promise<void> {
         try {
             const moc = this.mocStringGenerator();
             // Escreve de volta o conteúdo
@@ -244,5 +280,6 @@ ${filesLinksString}
             new Notice(`Error inserting MOC links: ${error.message}, Check if the Moc Administrator is Connected to the file.`);
         }
     }
+
 
 }

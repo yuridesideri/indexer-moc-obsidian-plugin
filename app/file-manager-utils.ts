@@ -53,18 +53,34 @@ export class FileManagerUtils {
         return `${folder.isRoot() ? "" : folder.path + "/"}${this.plugin.settings.indexFilePrefix}${this.plugin.settings.autoRenameIndexFile ? folderNameCopy.trim() : ""}${this.plugin.settings.indexFileSuffix}.md`;
     }
 
-    async fileAutoRenaming(file: TFile): Promise<void> {
-        if (this.isIndexFile(file)) {
-            const parentFolder = this.getDirectParent(file);
-            const newFileName = this.createIndexFileNameAndPath(parentFolder);
-            if (newFileName !== file.path) {
-                try {
-                    await this.app.fileManager.renameFile(file, newFileName);
-                    const newFileNameOnly = newFileName.split('/').pop() || newFileName;
-                    new Notice(`File renamed to: ${newFileNameOnly}`);
-                } catch (error) {
-                    console.error("Error renaming file:", error);
+    async fileAutoRenaming(file: TFile, trackRename?: (oldPath: string) => void): Promise<void> {
+        if (!this.isIndexFile(file)) {
+            return;
+        }
+        
+        const fileExists = await this.app.vault.adapter.exists(file.path);
+        if (!fileExists) {
+            return;
+        }
+        
+        this.plugin.BlockEventList.push(file);
+        const parentFolder = this.getDirectParent(file);
+        const newFileName = this.createIndexFileNameAndPath(parentFolder);
+        
+        if (newFileName !== file.path) {
+            try {
+                if (trackRename) {
+                    trackRename(file.path);
                 }
+                
+                await this.app.fileManager.renameFile(file, newFileName);
+                
+                const newFileNameOnly = newFileName.split("/").pop() || "";
+                if (newFileNameOnly !== "") {
+                    new Notice(`Index file renamed to: ${newFileNameOnly}`);
+                }
+            } catch (error) {
+                console.error("Error renaming index file:", error);
             }
         }
     }
@@ -90,12 +106,19 @@ export class FileManagerUtils {
         return filteredFiles;
     }
 
-    async folderAutoRenaming(absFile: TAbstractFile): Promise<void> {
+    async folderAutoRenaming(absFile: TFolder, trackRename?: (oldPath: string) => void): Promise<void> {
         if (absFile instanceof TFolder) {
             const folder = absFile as TFolder;
             const folderName = this.insertEmojiInFolderName(folder.name);
             if (folderName !== folder.name) {
-                await this.app.fileManager.renameFile(folder, `${folder.parent?.path}/${folderName}`);
+                const newPath = `${folder.parent?.path ? folder.parent.path + "/" : ""}${folderName}`;
+                
+                // Track that we're about to rename this folder
+                if (trackRename) {
+                    trackRename(folder.path);
+                }
+                
+                await this.app.fileManager.renameFile(folder, newPath);
                 new Notice(`Folder renamed to: ${folderName}`);
             }
         }
@@ -118,13 +141,12 @@ export class FileManagerUtils {
             const metadata = this.app.metadataCache.getFileCache(absFile);
             const propertyName = this.plugin.settings.mocPropertyKey;
             const propertyValue = this.plugin.settings.mocPropertyValue;
+            
             if (metadata && metadata.frontmatter) {
-                if (metadata.frontmatter[propertyName] === propertyValue && Object.keys(metadata.frontmatter).includes(propertyName)) {
-                    return true;
-                }
+                return metadata.frontmatter[propertyName] === propertyValue && 
+                       Object.keys(metadata.frontmatter).includes(propertyName);
             }
         }
-
         return false;
     }
 
@@ -134,7 +156,49 @@ export class FileManagerUtils {
         if (folderName.startsWith(emoji)) {
             return folderName; // No change needed if it already starts with the emoji
         }
+        folderName = folderName.replace(/\p{Emoji_Presentation}/gu, "");
+
         return emoji ? `${emoji}${folderName}` : folderName;
+    }
+
+    /**
+     * Obtém o caminho da pasta base para a sessão de rename
+     */
+    getBaseFolderPath(absFile: TAbstractFile, oldPath: string): string {
+        if (absFile instanceof TFolder) {
+            return oldPath;
+        }
+        // Para arquivos, obter o caminho da pasta pai
+        return oldPath.substring(0, oldPath.lastIndexOf('/'));
+    }
+
+    /**
+     * Determina se a pasta renomeada é a pasta raiz sendo renomeada pelo usuário,
+     * não uma pasta filha afetada por um rename de pasta pai
+     */
+    isRootRenamedFolder(renamedFolder: TFolder, oldPath: string): boolean {
+        const oldParentPath = oldPath.substring(0, oldPath.lastIndexOf('/'));
+        const newParentPath = renamedFolder.path.substring(0, renamedFolder.path.lastIndexOf('/'));
+
+        // Se caminhos pai são iguais, este é um rename direto, não um rename cascateado
+        return oldParentPath === newParentPath;
+    }
+
+    /**
+     * Normaliza um caminho removendo barras no início e fim
+     */
+    normalizePath(path: string): string {
+        return path.replace(/^\/+|\/+$/g, '');
+    }
+
+    /**
+     * Verifica se um caminho é filho de uma pasta base
+     */
+    isChildOfPath(childPath: string, basePath: string): boolean {
+        const normalizedBase = this.normalizePath(basePath);
+        const normalizedChild = this.normalizePath(childPath);
+
+        return normalizedChild === normalizedBase || normalizedChild.startsWith(normalizedBase + '/');
     }
 
 }

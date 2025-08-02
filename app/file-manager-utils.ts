@@ -11,13 +11,15 @@ export class FileManagerUtils {
         this.plugin = plugininjector;
     }
 
-    async createIndexFile(filePathWithName: string, content: string, propertyName: string, propertyValue: string | string[], templatePath?: string): Promise<TFile | undefined> {
+    async createIndexFile(filePathWithName: string, content: string, propertyName: string, propertyValue: string | string[], templatePathOverwritten?: string): Promise<TFile | undefined> {
         //If there's a template, use it!
+        let templatePath = templatePathOverwritten || this.plugin.settings.templatePath;
         if (templatePath) {
             try {
                 const templateFile = this.app.vault.getFileByPath(templatePath);
                 if (templateFile) {
                     content = await this.app.vault.read(templateFile);
+                    console.log(content);
                 } else {
                     new Notice(`Template file not found: ${templatePath}`);
                 }
@@ -57,24 +59,24 @@ export class FileManagerUtils {
         if (!this.isIndexFile(file)) {
             return;
         }
-        
+
         const fileExists = await this.app.vault.adapter.exists(file.path);
         if (!fileExists) {
             return;
         }
-        
+
         this.plugin.BlockEventList.push(file);
         const parentFolder = this.getDirectParent(file);
         const newFileName = this.createIndexFileNameAndPath(parentFolder);
-        
+
         if (newFileName !== file.path) {
             try {
                 if (trackRename) {
                     trackRename(file.path);
                 }
-                
+
                 await this.app.fileManager.renameFile(file, newFileName);
-                
+
                 const newFileNameOnly = newFileName.split("/").pop() || "";
                 if (newFileNameOnly !== "") {
                     new Notice(`Index file renamed to: ${newFileNameOnly}`);
@@ -112,12 +114,12 @@ export class FileManagerUtils {
             const folderName = this.insertEmojiInFolderName(folder.name);
             if (folderName !== folder.name) {
                 const newPath = `${folder.parent?.path ? folder.parent.path + "/" : ""}${folderName}`;
-                
+
                 // Track that we're about to rename this folder
                 if (trackRename) {
                     trackRename(folder.path);
                 }
-                
+
                 await this.app.fileManager.renameFile(folder, newPath);
                 new Notice(`Folder renamed to: ${folderName}`);
             }
@@ -141,10 +143,10 @@ export class FileManagerUtils {
             const metadata = this.app.metadataCache.getFileCache(absFile);
             const propertyName = this.plugin.settings.mocPropertyKey;
             const propertyValue = this.plugin.settings.mocPropertyValue;
-            
+
             if (metadata && metadata.frontmatter) {
-                return metadata.frontmatter[propertyName] === propertyValue && 
-                       Object.keys(metadata.frontmatter).includes(propertyName);
+                return metadata.frontmatter[propertyName] === propertyValue &&
+                    Object.keys(metadata.frontmatter).includes(propertyName);
             }
         }
         return false;

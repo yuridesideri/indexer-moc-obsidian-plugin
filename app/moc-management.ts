@@ -30,53 +30,6 @@ export default class MocAdministrator {
         // await this.parseMocString(mocString);
     }
 
-
-
-    private async getMocString() {
-        const fileContent = await this.app.vault.read(this.self_file);
-        const match = fileContent.match(FILE_PATTERNS.MOC_REGEX);
-        if (match) {
-            return match[2].trim();
-        }
-        return "";
-    }
-
-    private parseMocString(mocString: string) {
-        const lines = mocString.split("\n");
-        const mocLinks: typeof this.MocLinks = {
-            parent: undefined,
-            children: undefined,
-            files: undefined,
-        };
-
-
-        for (const line of lines) {
-            const parentMatch = line.match(/#### Parent:\n- \[\[(.*?)\]\]/);
-            const childrenMatch = line.match(/#### Children:\n- \[\[(.*?)\]\]/g);
-            const filesMatch = line.match(/#### Files:\n- \[\[(.*?)\]\]/g);
-
-
-
-            if (parentMatch) {
-                mocLinks.parent = this.app.vault.getFileByPath(parentMatch[1]);
-            }
-
-            if (childrenMatch) {
-                mocLinks.children = childrenMatch
-                    .map(match => this.app.vault.getFileByPath(match[1]))
-                    .filter((file): file is TFile => file !== null);
-            }
-
-            if (filesMatch) {
-                mocLinks.files = filesMatch
-                    .map(match => this.app.vault.getFileByPath(match[1]))
-                    .filter((file): file is TFile => file !== null);
-            }
-        }
-
-        return mocLinks;
-    }
-
     async deleteMocString(resetLines: boolean = true): Promise<void> {
         let mocRegex: RegExp;
         if (resetLines) {
@@ -108,8 +61,6 @@ export default class MocAdministrator {
     async updateMocLinks() {
         await this.deleteMocString(false);
         await this.mocInjectorToFile(0);
-
-        //TODO: Update siblings
     }
 
     async mocLinksAutoUpdate(): Promise<void> {

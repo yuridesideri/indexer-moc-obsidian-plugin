@@ -38,7 +38,7 @@ export class FileManagerUtils {
 
             return file;
         } catch (error) {
-            new Notice(`Error creating MOC file: ${error.message}`);
+            console.warn("Error creating MOC file:", error);
             return;
         }
     }

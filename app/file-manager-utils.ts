@@ -19,9 +19,6 @@ export class FileManagerUtils {
                 const templateFile = this.app.vault.getFileByPath(templatePath);
                 if (templateFile) {
                     content = await this.app.vault.read(templateFile);
-                    console.log(content);
-                } else {
-                    new Notice(`Template file not found: ${templatePath}`);
                 }
             } catch (error) {
                 new Notice(`Error reading template file: ${error.message}`);
